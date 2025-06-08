@@ -1,0 +1,54 @@
+<!-- <div style="margin:80px">
+    <h1>Контакты</h1>
+    <h4>Напишите нам, если у вас есть вопросы</h4>
+    <p>
+        Пожалуйста, напишите свое имя, адрес электронной почты и расскажите о опыте работы.
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Отправить</button>
+    </form>
+    <a href="{% url 'home' %}">Назад на главную</a> -->
+</div><!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анкета Работника</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+</head>
+<body>
+<header>
+    <h1>Подбор <span class="highlight">работы</span></h1>
+    <nav>
+        <a href="{% url 'home' %}">Главная</a>
+
+    </nav>
+</header>
+
+<main>
+    <h2>Анкета <span class="highlight">работника</span></h2>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="left-column">
+            {{ form.name }}
+            {{ form.phone }}
+            {{ form.email_address }}
+            {{ form.birth_date }}
+            {{ form.job }}
+            {{ form.experience }}
+        </div>
+        <div class="right-column">
+            {{ form.photo }}
+            {{ form.about_me }}
+        </div>
+    </form>
+</main>
+
+<footer>
+    <button type="submit">Отправить анкету</button>
+</footer>
+</body>
+</html>

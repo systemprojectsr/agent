@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="static/css/home.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <a href="{% url 'home' %}" class="logo">Подбор
+        <span>работы</span></a>
+        <i class='bx bx-menu' id="menu-icon"></i>
+        <nav class="navbar">
+            <a href="#home" class="active">Главная</a>
+            <a href="#services">Предоставляемые услуги</a>
+            <a href="#testimonials" >Рейтинг работнков</a>
+        </nav>
+    </header>
+
+    <section class="home" id="home">
+        <div class="home-content">
+            <h1>Стань частью нашей <span>команды</span></h1>
+            <h3 class="text-animation"> <span class="text_animation"></span></h3>
+            <p class="text_about">
+                Мы — команда профессионалов, специализирующихся
+                 на подборе работодателей для работников. Наша миссия
+                  — помочь вам найти идеальное место работы, где ваши
+                   навыки и амбиции будут по достоинству оценены. Мы
+                    понимаем, что поиск работы может быть сложным и
+                     утомительным процессом, поэтому мы предлагаем
+                      индивидуальный подход и широкий спектр услуг для соискателей.
+            </p>
+            <div class="btn-group">
+                <a href="{% url 'anketa' %}" class="btn">Заполнить анкету</a>
+            </div>
+        </div>
+            <div class="home-img">
+                <img src="static/img/image.jpg" alt="">
+            </div>
+
+    </section>
+
+    <section class="services" id="services">
+        <h2 class="heading">Предоставляемые услуги</h2>
+        <div class="services-container">
+            <div class="service-box">
+               <div class="service-info">
+                <h4>Курьер</h4>
+                <p>
+                    Услуга курьера включает в себя доставку различных товаров и документов от одного места к другому
+                    </p>
+                </div>
+            </div>
+            <div class="service-box">
+                <div class="service-info">
+                    <h4>Няня</h4>
+                    <p>
+                    Услуга няни включает в себя широкий спектр задач
+                     и обязанностей, направленных на заботу о ребенке и поддержку родителей
+                    </p>
+                </div>
+            </div>
+            <div class="service-box">
+                <div class="service-info">
+                    <h4>Сантехник</h4>
+                    <p>
+                        Услуга сантехник включает в себя широкий спектр работ, связанных с установкой, ремонтом и обслуживанием сантехнических систем и оборудования.
+                    </p>
+                </div>
+            </div>
+            <div class="service-box">
+                <div class="service-info">
+                    <h4>Электрик</h4>
+                    <p>
+                        Услуга электрика включает в себя широкий спектр работ, связанных с установкой, ремонтом и обслуживанием электрических систем и оборудования
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="testimonials" id="testimonials">
+        <div class="testimonials-box">
+            <div class="headiing">
+                <h2 class="heading">Рейтинг работника</h2>
+                <div class="wrapper">
+                    <div class="testimonials-item">
+                        <img src="static/img/2.jpg" alt="">
+                        <h2>Анастасия</h2>
+                        <div class="rating">
+                            <i class='bx bxs-star' id="star"></i>
+                            <i class='bx bxs-star' id="star"></i>
+                            <i class='bx bxs-star' id="star"></i>
+                            <i class='bx bxs-star' id="star"></i>
+                            <i class='bx bxs-star' id="star"></i>
+                        </div>
+                        <p>
+                            Lorem ipsum dolor sit amet consectetur
+                             adipisicing elit. Dolorem nobis omnis
+                              sunt dolorum tempora eaque cupiditate
+                               odit, similique nam! Voluptate ipsum
+                                animi nobis quis minima architecto
+                                 labore totam distinctio corrupti.
+                        </p>
+                    </div>
+                    <div class="testimonials-item">
+                        <img src="static/img/2.jpg" alt="">
+                        <h2>Виктория</h2>
+                        <div class="rating">
+                            <i class='bx bxs-star' id="star"></i>
+                            <i class='bx bxs-star' id="star"></i>
+                            <i class='bx bxs-star' id="star"></i>
+                            <i class='bx bxs-star' id="star"></i>
+                        </div>
+                        <p>
+                            Lorem ipsum dolor sit amet consectetur
+                             adipisicing elit. Dolorem nobis omnis
+                              sunt dolorum tempora eaque cupiditate
+                               odit, similique nam! Voluptate ipsum
+                                animi nobis quis minima architecto
+                                 labore totam distinctio corrupti.
+                        </p>
+                    </div>
+                    <div class="testimonials-item">
+                        <img src="static/img/2.jpg" alt="">
+                        <h2>Александра</h2>
+                        <div class="rating">
+                            <i class='bx bxs-star' id="star"></i>
+                            <i class='bx bxs-star' id="star"></i>
+                            <i class='bx bxs-star' id="star"></i>
+                        </div>
+                        <p>
+                            Lorem ipsum dolor sit amet consectetur
+                             adipisicing elit. Dolorem nobis omnis
+                              sunt dolorum tempora eaque cupiditate
+                               odit, similique nam! Voluptate ipsum
+                                animi nobis quis minima architecto
+                                 labore totam distinctio corrupti.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <sript src="script.js">
+    </sript>
+</body>

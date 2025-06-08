@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .result { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+        .endpoint { margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Диагностика API платформы услуг</h1>
+        
+        <p>Эта страница поможет диагностировать проблемы с API и CORS.</p>
+        
+        <button onclick="testAllEndpoints()">Проверить все API</button>
+        <button onclick="testSearchOnly()">Только поиск услуг</button>
+        <button onclick="clearResults()">Очистить результаты</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            resultsDiv.appendChild(div);
+            console.log(message);
+        }
+        
+        function clearResults() {
+            resultsDiv.innerHTML = '';
+        }
+        
+        async function testEndpoint(name, url, method = 'GET') {
+            const endpointDiv = document.createElement('div');
+            endpointDiv.className = 'endpoint';
+            endpointDiv.innerHTML = `<h3>Тестируем: ${name}</h3><p>URL: ${url}</p>`;
+            resultsDiv.appendChild(endpointDiv);
+            
+            try {
+                log(`🔄 Запрос к ${name}...`);
+                
+                const response = await fetch(url, {
+                    method: method,
+                    mode: 'cors'
+                });
+                
+                log(`✅ ${name}: ${response.status} ${response.statusText}`, 'success');
+                
+                if (response.ok) {
+                    try {
+                        const data = await response.json();
+                        
+                        if (url.includes('search')) {
+                            log(`📊 Получено услуг: ${Array.isArray(data) ? data.length : 'неизвестно'}`, 'success');
+                            if (Array.isArray(data) && data.length > 0) {
+                                log(`📋 Первая услуга: ${data[0].name} - ${data[0].price}₽`, 'success');
+                                log(`📋 Примеры данных: <pre>${JSON.stringify(data.slice(0, 2), null, 2)}</pre>`, 'success');
+                            }
+                        } else {
+                            log(`📋 Ответ: <pre>${JSON.stringify(data, null, 2).substring(0, 500)}...</pre>`, 'success');
+                        }
+                    } catch (jsonError) {
+                        log(`⚠️ Не удалось разобрать JSON: ${jsonError.message}`, 'warning');
+                    }
+                } else {
+                    log(`❌ ${name}: HTTP ${response.status}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ ${name}: ${error.message}`, 'error');
+                
+                if (error.message.includes('CORS')) {
+                    log(`🚫 CORS блокировка для ${name} - это ожидаемо в браузере`, 'warning');
+                } else if (error.message.includes('Failed to fetch')) {
+                    log(`🌐 Сетевая ошибка для ${name} - возможно CORS или недоступность сервера`, 'warning');
+                }
+            }
+        }
+        
+        async function testSearchOnly() {
+            clearResults();
+            log('🔍 Тестируем только API поиска услуг');
+            await testEndpoint('Поиск услуг', 'https://search.tomsk-center.ru/search');
+        }
+        
+        async function testAllEndpoints() {
+            clearResults();
+            log('🚀 Начинаем полную диагностику API');
+            
+            const endpoints = [
+                ['Поиск услуг', 'https://search.tomsk-center.ru/search'],
+                ['Авторизация', 'https://auth.tomsk-center.ru/v1/login'],
+                ['Фотосервис', 'https://dsam.tomsk-center.ru/photos'],
+                ['Чат', 'https://chat.tomsk-center.ru/']
+            ];
+            
+            for (const [name, url] of endpoints) {
+                await testEndpoint(name, url);
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Пауза между запросами
+            }
+            
+            log('🏁 Диагностика завершена', 'success');
+        }
+        
+        // Автоматический тест при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            log('📱 Страница диагностики API загружена');
+            log('🔧 Используйте кнопки выше для тестирования API');
+        });
+    </script>
+</body>
+</html>
