@@ -52,7 +52,11 @@ export const getAuthToken = (): string | null => {
 };
 
 export const setAuthToken = (token: string): void => {
-  Cookies.set(TOKEN_KEY, token, { expires: 7, secure: true, sameSite: 'strict' });
+  Cookies.set(TOKEN_KEY, token, {
+    expires: 7,
+    secure: window.location.protocol === 'https:',
+    sameSite: 'strict',
+  });
 };
 
 export const getRefreshToken = (): string | null => {
@@ -60,7 +64,11 @@ export const getRefreshToken = (): string | null => {
 };
 
 export const setRefreshToken = (token: string): void => {
-  Cookies.set(REFRESH_TOKEN_KEY, token, { expires: 30, secure: true, sameSite: 'strict' });
+  Cookies.set(REFRESH_TOKEN_KEY, token, {
+    expires: 30,
+    secure: window.location.protocol === 'https:',
+    sameSite: 'strict',
+  });
 };
 
 export const clearTokens = (): void => {
