@@ -28,7 +28,14 @@ const SearchPage = () => {
     // Initialize search from URL params or store
     const query = searchParams.get('q') || storeSearchParams.query || '';
     const category = searchParams.get('category') || storeSearchParams.category || '';
-    const sort = searchParams.get('sort') || storeSearchParams.sort || 'date';
+    const sort =
+      (searchParams.get('sort') as
+        | 'price_low'
+        | 'price_high'
+        | 'rating_low'
+        | 'rating_high'
+        | null)
+        ?? storeSearchParams.sort;
 
     setSearchQuery(query);
     
@@ -132,7 +139,7 @@ const SearchPage = () => {
                     Сортировка
                   </label>
                   <Select
-                    value={storeSearchParams.sort || 'date'}
+                    value={storeSearchParams.sort || ''}
                     onValueChange={(value) => handleFilterChange('sort', value)}
                   >
                     <SelectTrigger>

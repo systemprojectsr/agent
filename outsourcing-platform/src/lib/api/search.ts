@@ -85,20 +85,19 @@ export class SearchService {
       // Apply sorting
       if (params.sort) {
         switch (params.sort) {
-          case 'price_asc':
+          case 'price_low':
             services.sort((a: Service, b: Service) => a.price - b.price);
             break;
-          case 'price_desc':
+          case 'price_high':
             services.sort((a: Service, b: Service) => b.price - a.price);
             break;
-          case 'rating':
+          case 'rating_low':
+            services.sort((a: Service, b: Service) => a.rating - b.rating);
+            break;
+          case 'rating_high':
             services.sort((a: Service, b: Service) => b.rating - a.rating);
             break;
-          case 'date':
           default:
-            services.sort((a: Service, b: Service) => 
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-            );
             break;
         }
       }
