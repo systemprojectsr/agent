@@ -4,10 +4,10 @@ import { toast } from 'react-hot-toast';
 
 // API Base URLs for microservices
 export const API_ENDPOINTS = {
-  AUTH: 'https://auth.outsource.tomsk-center.ru/v1',
-  SEARCH: 'https://search.outsource.tomsk-center.ru',
-  DATABASE: 'https://chat.outsource.tomsk-center.ru',
-  PHOTOS: 'https://dsam.outsource.tomsk-center.ru',
+  AUTH: 'https://auth.tomsk-center.ru/v1',
+  SEARCH: 'https://search.tomsk-center.ru',
+  DATABASE: 'https://chat.tomsk-center.ru',
+  PHOTOS: 'https://dsam.tomsk-center.ru',
 } as const;
 
 // Create axios instances for each microservice
