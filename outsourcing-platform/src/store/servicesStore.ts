@@ -49,7 +49,7 @@ const initialSearchParams: SearchParams = {
   price_to: undefined,
   location: '',
   rating: undefined,
-  sort: 'date',
+  sort: undefined,
   category: '',
   page: 1,
   limit: 12,

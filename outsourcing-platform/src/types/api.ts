@@ -53,7 +53,7 @@ export interface SearchParams {
   price_to?: number;
   location?: string;
   rating?: number;
-  sort?: 'price_asc' | 'price_desc' | 'rating' | 'date';
+  sort?: 'price_low' | 'price_high' | 'rating_low' | 'rating_high';
   category?: string;
   page?: number;
   limit?: number;
@@ -167,8 +167,9 @@ export type ServiceCategory = typeof SERVICE_CATEGORIES[number];
 
 // Sort options
 export const SORT_OPTIONS = [
-  { value: 'date', label: 'По дате' },
-  { value: 'price_asc', label: 'По цене (возрастание)' },
-  { value: 'price_desc', label: 'По цене (убывание)' },
-  { value: 'rating', label: 'По рейтингу' },
+  { value: '', label: 'Без сортировки' },
+  { value: 'price_low', label: 'По цене (возрастание)' },
+  { value: 'price_high', label: 'По цене (убывание)' },
+  { value: 'rating_low', label: 'По рейтингу (возрастание)' },
+  { value: 'rating_high', label: 'По рейтингу (убывание)' },
 ] as const;
