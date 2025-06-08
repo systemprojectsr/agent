@@ -196,26 +196,11 @@ type ResponseBalanceHistory struct {
 // ORDER STRUCTURES
 // ================================
 
-type TokenCreateOrder struct {
-	*TokenAccess
-	Order struct {
-		CardID      uint    `json:"card_id"`
-		Description string  `json:"description"`
-		Amount      float64 `json:"amount"`
-	} `json:"order"`
-}
-
 type TokenOrdersList struct {
 	*TokenAccess
 	Status string `json:"status"` // all, pending, in_progress, completed, cancelled
 	Limit  int    `json:"limit"`
 	Offset int    `json:"offset"`
-}
-
-type TokenOrderAction struct {
-	*TokenAccess
-	OrderID uint   `json:"order_id"`
-	Action  string `json:"action"` // pay, cancel, complete, start_work
 }
 
 type OrderInfo struct {
@@ -243,8 +228,8 @@ type ResponseOrdersList struct {
 
 type ResponseOrderAction struct {
 	*internal.StatusResponse
-	Order  OrderInfo `json:"order"`
-	Message string   `json:"message"`
+	Order   OrderInfo `json:"order"`
+	Message string    `json:"message"`
 }
 
 // ================================
@@ -265,15 +250,6 @@ type ResponseWorkerComplete struct {
 // ================================
 // REVIEW STRUCTURES
 // ================================
-
-type TokenCreateReview struct {
-	*TokenAccess
-	Review struct {
-		OrderID uint   `json:"order_id"`
-		Rating  int    `json:"rating"`
-		Comment string `json:"comment"`
-	} `json:"review"`
-}
 
 type ReviewInfo struct {
 	ID          uint   `json:"id"`
@@ -349,16 +325,3 @@ type TokenMarkNotificationRead struct {
 // ================================
 // CARD UPDATE STRUCTURE
 // ================================
-
-type TokenUpdateCard struct {
-	*TokenAccess
-	Card struct {
-		ID          uint    `json:"id"`
-		Title       string  `json:"title"`
-		Description string  `json:"description"`
-		Category    string  `json:"category"`
-		Location    string  `json:"location"`
-		Price       float64 `json:"price"`
-		IsActive    bool    `json:"is_active"`
-	} `json:"card"`
-}

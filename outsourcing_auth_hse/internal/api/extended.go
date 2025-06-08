@@ -161,8 +161,8 @@ type ExtendedTokenAccess struct {
 		Login struct {
 			Token string `json:"token"`
 		} `json:"login"`
-		ClientID  uint `json:"client_id,omitempty"`
-		CompanyID uint `json:"company_id,omitempty"`
+		ClientID  uint   `json:"client_id,omitempty"`
+		CompanyID uint   `json:"company_id,omitempty"`
 		UserType  string `json:"user_type"` // "client" или "company"
 	} `json:"user"`
 }
