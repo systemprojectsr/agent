@@ -1,6 +1,27 @@
 import { searchApi, delay } from './config';
 import { SearchParams, SearchResponse, Service } from '@/types/api';
 
+// Helper to map arbitrary service objects from different APIs to our Service type
+const mapApiService = (service: any): Service => ({
+  id: String(service.id ?? service.ID ?? ''),
+  title: service.title ?? service.name ?? service.Name ?? '',
+  description: service.description ?? service.Description ?? '',
+  price: Number(service.price ?? service.Price ?? 0),
+  priceType: (service.priceType as any) ?? 'fixed',
+  category: service.category ?? '',
+  subcategory: service.subcategory,
+  images: service.images ?? [],
+  companyId: String(service.companyId ?? ''),
+  company: service.company,
+  location: service.location ?? service.Location ?? '',
+  rating: Number(service.rating ?? service.Rating ?? 0),
+  reviewsCount: service.reviewsCount ?? 0,
+  tags: service.tags ?? [],
+  availability: service.availability ?? true,
+  createdAt: service.createdAt ?? new Date().toISOString(),
+  updatedAt: service.updatedAt ?? new Date().toISOString(),
+});
+
 export class SearchService {
   // Search services with filters
   static async searchServices(params: SearchParams): Promise<SearchResponse> {
@@ -19,13 +40,29 @@ export class SearchService {
       if (params.limit) queryParams.append('limit', params.limit.toString());
 
       const response = await searchApi.get(`/search?${queryParams.toString()}`);
-      
+
+      const data = response.data;
+      let services: Service[] = [];
+
+      if (Array.isArray(data)) {
+        services = data.map(mapApiService);
+        return {
+          services,
+          total: services.length,
+          page: params.page || 1,
+          limit: params.limit || services.length,
+          hasMore: false,
+        };
+      }
+
+      services = (data.results || data.services || []).map(mapApiService);
+
       return {
-        services: response.data.results || response.data.services || [],
-        total: response.data.total || 0,
-        page: response.data.page || 1,
-        limit: response.data.limit || 10,
-        hasMore: response.data.hasMore || false,
+        services,
+        total: data.total || services.length,
+        page: data.page || params.page || 1,
+        limit: data.limit || params.limit || services.length || 10,
+        hasMore: data.hasMore || false,
       };
     } catch (error) {
       console.warn('Real API unavailable, using mock data:', error);
@@ -132,7 +169,11 @@ export class SearchService {
   static async getFeaturedServices(limit: number = 8): Promise<Service[]> {
     try {
       const response = await searchApi.get(`/search?featured=true&limit=${limit}`);
-      return response.data.results || response.data.services || [];
+      const data = response.data;
+      if (Array.isArray(data)) {
+        return data.map(mapApiService);
+      }
+      return (data.results || data.services || []).map(mapApiService);
     } catch (error) {
       console.warn('Real API unavailable, using mock data for featured services');
       return this.getFeaturedServicesMock(limit);
@@ -155,7 +196,11 @@ export class SearchService {
   static async getServicesByCategory(category: string, limit: number = 12): Promise<Service[]> {
     try {
       const response = await searchApi.get(`/search?category=${encodeURIComponent(category)}&limit=${limit}`);
-      return response.data.results || response.data.services || [];
+      const data = response.data;
+      if (Array.isArray(data)) {
+        return data.map(mapApiService);
+      }
+      return (data.results || data.services || []).map(mapApiService);
     } catch (error) {
       console.warn('Real API unavailable, using mock data for category services');
       return this.getServicesByCategoryMock(category, limit);
@@ -181,7 +226,11 @@ export class SearchService {
   static async getServiceById(serviceId: string): Promise<Service> {
     try {
       const response = await searchApi.get(`/services/${serviceId}`);
-      return response.data;
+      const data = response.data;
+      if (Array.isArray(data)) {
+        return mapApiService(data[0]);
+      }
+      return mapApiService(data);
     } catch (error) {
       console.warn('Real API unavailable, using mock data for service details');
       return this.getServiceByIdMock(serviceId);
@@ -208,7 +257,11 @@ export class SearchService {
   static async getRelatedServices(serviceId: string, limit: number = 4): Promise<Service[]> {
     try {
       const response = await searchApi.get(`/services/${serviceId}/related?limit=${limit}`);
-      return response.data.results || response.data.services || [];
+      const data = response.data;
+      if (Array.isArray(data)) {
+        return data.map(mapApiService);
+      }
+      return (data.results || data.services || []).map(mapApiService);
     } catch (error) {
       console.warn('Real API unavailable, using mock data for related services');
       return this.getRelatedServicesMock(serviceId, limit);
