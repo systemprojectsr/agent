@@ -4,34 +4,26 @@ import { PhotoUploadResponse } from '@/types/api';
 export class PhotosService {
   // Upload single photo
   static async uploadPhoto(file: File, metadata?: any): Promise<PhotoUploadResponse> {
-    try {
-      const formData = new FormData();
-      formData.append('photo', file);
-      
-      if (metadata) {
-        formData.append('metadata', JSON.stringify(metadata));
-      }
+    const formData = new FormData();
+    formData.append('photo', file);
 
-      const response = await photosApi.post('/photos/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      return response.data;
-    } catch (error) {
-      throw error;
+    if (metadata) {
+      formData.append('metadata', JSON.stringify(metadata));
     }
+
+    const response = await photosApi.post('/photos/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return response.data;
   }
 
   // Upload multiple photos
   static async uploadPhotos(files: File[], metadata?: any): Promise<PhotoUploadResponse[]> {
-    try {
-      const uploadPromises = files.map(file => this.uploadPhoto(file, metadata));
-      return await Promise.all(uploadPromises);
-    } catch (error) {
-      throw error;
-    }
+    const uploadPromises = files.map(file => this.uploadPhoto(file, metadata));
+    return await Promise.all(uploadPromises);
   }
 
   // Process photo (resize, optimize, etc.)
@@ -41,35 +33,23 @@ export class PhotosService {
     quality?: number;
     format?: 'jpeg' | 'png' | 'webp';
   }): Promise<PhotoUploadResponse> {
-    try {
-      const response = await photosApi.post('/photos/process', {
-        photoId,
-        ...options,
-      });
-      
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await photosApi.post('/photos/process', {
+      photoId,
+      ...options,
+    });
+
+    return response.data;
   }
 
   // Get photo metadata
   static async getPhotoMetadata(photoId: string): Promise<any> {
-    try {
-      const response = await photosApi.get(`/photos/${photoId}/metadata`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await photosApi.get(`/photos/${photoId}/metadata`);
+    return response.data;
   }
 
   // Delete photo
   static async deletePhoto(photoId: string): Promise<void> {
-    try {
-      await photosApi.delete(`/photos/${photoId}`);
-    } catch (error) {
-      throw error;
-    }
+    await photosApi.delete(`/photos/${photoId}`);
   }
 
   // Get photo URL by ID
