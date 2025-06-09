@@ -70,6 +70,16 @@ type TokenAccess struct {
 	} `json:"user"`
 }
 
+type TokenAccessDouble struct {
+	TokenAccess struct {
+		User struct {
+			Login struct {
+				Token string `json:"token"`
+			} `json:"login"`
+		} `json:"user"`
+	} `json:"token_access"`
+}
+
 type TokenCreateCard struct {
 	TokenAccess TokenAccess `json:"token_access"`
 	Card        struct {

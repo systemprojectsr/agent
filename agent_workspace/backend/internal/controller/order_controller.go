@@ -316,13 +316,20 @@ func (ctrl *orderController) UpdateOrderStatus(c *gin.Context, request *api.Toke
 		}
 		err = ctrl.orderService.PayForOrder(request.OrderID, userInfo.UserID)
 		message = "Order paid successfully"
-	case "start_work":
+	case "start":
 		if !userInfo.IsCompany {
 			api.GetErrorJSON(c, http.StatusForbidden, "Only companies can start work")
 			return
 		}
 		err = ctrl.orderService.StartOrder(request.OrderID, userInfo.UserID)
 		message = "Work started successfully"
+	case "accept":
+		if !userInfo.IsCompany {
+			api.GetErrorJSON(c, http.StatusForbidden, "Only companies can start work")
+			return
+		}
+		err = ctrl.orderService.AcceptOrder(request.OrderID, userInfo.UserID)
+		message = "Order accepted successfully"
 	case "complete":
 		if userInfo.IsCompany {
 			api.GetErrorJSON(c, http.StatusForbidden, "Only clients can complete orders")

@@ -15,6 +15,7 @@ type OrderService interface {
 	GetOrdersByClient(clientID uint, page, limit int) ([]database.Order, error)
 	GetOrdersByCompany(companyID uint, page, limit int) ([]database.Order, error)
 	PayForOrder(orderID, clientID uint) error
+	AcceptOrder(orderID, companyID uint) error
 	StartOrder(orderID, companyID uint) error
 	CompleteOrderByWorker(token string) error
 	FinishOrder(orderID, clientID uint) error
@@ -25,11 +26,11 @@ type OrderService interface {
 }
 
 type orderService struct {
-	orderRepo       repository.OrderRepository
-	cardRepo        repository.CardRepository
-	balanceRepo     repository.BalanceRepository
-	escrowRepo      repository.EscrowRepository
-	workerLinkRepo  repository.WorkerLinkRepository
+	orderRepo      repository.OrderRepository
+	cardRepo       repository.CardRepository
+	balanceRepo    repository.BalanceRepository
+	escrowRepo     repository.EscrowRepository
+	workerLinkRepo repository.WorkerLinkRepository
 }
 
 func (s *orderService) CreateOrder(clientID, companyID, cardID uint, description string) (*database.Order, error) {
@@ -76,6 +77,23 @@ func (s *orderService) GetOrdersByCompany(companyID uint, page, limit int) ([]da
 	return s.orderRepo.GetByCompanyID(companyID, limit, offset)
 }
 
+func (s *orderService) AcceptOrder(orderID, companyID uint) error {
+	order, err := s.orderRepo.GetByID(orderID)
+	if err != nil {
+		return err
+	}
+
+	if order.CompanyID != companyID {
+		return errors.New("unauthorized: order does not belong to this company")
+	}
+
+	if order.Status != "created" {
+		return errors.New("order cannot be accepted in current status")
+	}
+
+	return s.orderRepo.UpdateStatus(orderID, "accepted")
+}
+
 func (s *orderService) PayForOrder(orderID, clientID uint) error {
 	order, err := s.orderRepo.GetByID(orderID)
 	if err != nil {
@@ -85,11 +103,7 @@ func (s *orderService) PayForOrder(orderID, clientID uint) error {
 	if order.ClientID != clientID {
 		return errors.New("unauthorized: order does not belong to this client")
 	}
-
-	if order.Status != "created" {
-		return errors.New("order cannot be paid in current status")
-	}
-
+	
 	// Проверяем баланс клиента
 	balance, err := s.balanceRepo.GetClientBalance(clientID)
 	if err != nil {

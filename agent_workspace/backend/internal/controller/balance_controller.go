@@ -14,8 +14,8 @@ type BalanceController interface {
 	GetCompanyBalance(c *gin.Context, request *api.TokenAccess)
 	DepositClientBalance(c *gin.Context, request *api.TokenDepositBalance)
 	WithdrawCompanyBalance(c *gin.Context, request *api.TokenWithdrawBalance)
-	GetClientTransactions(c *gin.Context, request *api.TokenAccess)
-	GetCompanyTransactions(c *gin.Context, request *api.TokenAccess)
+	GetClientTransactions(c *gin.Context, request *api.TokenAccessDouble)
+	GetCompanyTransactions(c *gin.Context, request *api.TokenAccessDouble)
 	TopUpBalance(c *gin.Context, request *api.TokenTopUpBalance)
 	GetBalanceHistory(c *gin.Context, request *api.TokenBalanceHistory)
 }
@@ -140,8 +140,8 @@ func (ctrl *balanceController) WithdrawCompanyBalance(c *gin.Context, request *a
 	})
 }
 
-func (ctrl *balanceController) GetClientTransactions(c *gin.Context, request *api.TokenAccess) {
-	userInfo, err := ExtractUserFromToken(request.User.Login.Token)
+func (ctrl *balanceController) GetClientTransactions(c *gin.Context, request *api.TokenAccessDouble) {
+	userInfo, err := ExtractUserFromToken(request.TokenAccess.User.Login.Token)
 	if err != nil {
 		api.GetErrorJSON(c, http.StatusUnauthorized, err.Error())
 		return
@@ -175,8 +175,8 @@ func (ctrl *balanceController) GetClientTransactions(c *gin.Context, request *ap
 	})
 }
 
-func (ctrl *balanceController) GetCompanyTransactions(c *gin.Context, request *api.TokenAccess) {
-	userInfo, err := ExtractUserFromToken(request.User.Login.Token)
+func (ctrl *balanceController) GetCompanyTransactions(c *gin.Context, request *api.TokenAccessDouble) {
+	userInfo, err := ExtractUserFromToken(request.TokenAccess.User.Login.Token)
 	if err != nil {
 		api.GetErrorJSON(c, http.StatusUnauthorized, err.Error())
 		return
@@ -203,10 +203,16 @@ func (ctrl *balanceController) GetCompanyTransactions(c *gin.Context, request *a
 		return
 	}
 
+	var totalAmount float64
+	for _, t := range transactions {
+		totalAmount += t.Amount
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"transactions": transactions,
 		"page":         page,
 		"limit":        limit,
+		"total":        totalAmount,
 	})
 }
 

@@ -574,12 +574,12 @@ func main() {
 				})
 
 				balanceGroup.POST("/transactions", func(c *gin.Context) {
-					request := &api.TokenAccess{}
+					request := &api.TokenAccessDouble{}
 					if err := c.ShouldBind(request); err != nil && errors.As(err, &validator.ValidationErrors{}) {
 						api.GetErrorJSON(c, http.StatusBadRequest, "JSON is invalid")
 						return
 					}
-					ok, mapClaims := security.CheckToken(request.User.Login.Token)
+					ok, mapClaims := security.CheckToken(request.TokenAccess.User.Login.Token)
 					if mapClaims == nil {
 						api.GetErrorJSON(c, http.StatusBadRequest, "The token is invalid")
 						return
