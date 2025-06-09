@@ -67,42 +67,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [])
 
   const login = async (email: string, password: string) => {
-    try {
-      const userData = await AuthService.login({ email, password })
-      setUser(userData)
-      
-      // Получаем профиль после авторизации
-      const profileData = await ProfileService.getProfile(userData.token)
-      setProfile(profileData)
-    } catch (error) {
-      throw error
-    }
+    const userData = await AuthService.login({ email, password })
+    setUser(userData)
+
+    // Получаем профиль после авторизации
+    const profileData = await ProfileService.getProfile(userData.token)
+    setProfile(profileData)
   }
 
   const registerClient = async (userData: any) => {
-    try {
-      const user = await AuthService.registerClient(userData)
-      setUser(user)
-      
-      // Получаем профиль после регистрации
-      const profileData = await ProfileService.getProfile(user.token)
-      setProfile(profileData)
-    } catch (error) {
-      throw error
-    }
+    const user = await AuthService.registerClient(userData)
+    setUser(user)
+
+    // Получаем профиль после регистрации
+    const profileData = await ProfileService.getProfile(user.token)
+    setProfile(profileData)
   }
 
   const registerCompany = async (userData: any) => {
-    try {
-      const user = await AuthService.registerCompany(userData)
-      setUser(user)
-      
-      // Получаем профиль после регистрации
-      const profileData = await ProfileService.getProfile(user.token)
-      setProfile(profileData)
-    } catch (error) {
-      throw error
-    }
+    const user = await AuthService.registerCompany(userData)
+    setUser(user)
+
+    // Получаем профиль после регистрации
+    const profileData = await ProfileService.getProfile(user.token)
+    setProfile(profileData)
   }
 
   const logout = () => {

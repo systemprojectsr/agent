@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { OrdersService, OrderListParams, OrderAction } from '@/services/ordersService'
 import { ReviewsService } from '@/services/reviewsService'
+import { BalanceService } from '@/services/balanceService'
 import { Order } from '@/config/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -30,7 +31,7 @@ export const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<number | null>(null)
-  const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'in_progress' | 'completed' | 'cancelled'>('all')
+  const [selectedStatus, setSelectedStatus] = useState<'all' | 'created' | 'pending' | 'in_progress' | 'completed' | 'cancelled'>('all')
   const [reviewDialog, setReviewDialog] = useState<{ open: boolean, order: Order | null }>({ open: false, order: null })
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' })
   const [error, setError] = useState('')
@@ -58,16 +59,74 @@ export const OrdersPage: React.FC = () => {
     }
   }
 
-  const handleOrderAction = async (orderId: number, action: OrderAction) => {
+  const handleOrderAction = async (orderId: number, action: OrderAction, order?: Order) => {
     if (!user?.token) return
 
     try {
       setActionLoading(orderId)
-      await OrdersService.updateOrderStatus(user.token, orderId, action)
-      setSuccess(`Статус заказа обновлен`)
+      
+      // Для завершения заказа компанией - переводим деньги из эскроу
+      if (action === 'complete' && order && isCompany()) {
+        // Сначала завершаем заказ
+        await OrdersService.updateOrderStatus(user.token, orderId, action)
+        
+        // Затем начисляем деньги компании (из эскроу)
+        try {
+          await BalanceService.depositBalance(user.token, order.amount)
+          setSuccess(`Заказ завершен. Средства ${order.amount}₽ зачислены на ваш баланс`)
+        } catch (balanceError) {
+          console.error('Ошибка зачисления средств:', balanceError)
+          setSuccess(`Заказ завершен, но произошла ошибка зачисления средств`)
+        }
+      } else {
+        await OrdersService.updateOrderStatus(user.token, orderId, action)
+        
+        // Сообщения для разных действий
+        const messages: Record<OrderAction, string> = {
+          accept: 'Заказ принят',
+          reject: 'Заказ отклонен',
+          start: 'Работа начата',
+          complete: 'Заказ завершен',
+          cancel: 'Заказ отменен'
+        }
+        
+        setSuccess(messages[action] || 'Статус заказа обновлен')
+      }
+      
       await loadOrders()
     } catch (error: any) {
       setError(error.message || 'Ошибка обновления статуса')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handlePayOrder = async (order: Order) => {
+    if (!user?.token) return
+
+    try {
+      setActionLoading(order.id)
+      
+      // Проверяем баланс
+      const currentBalance = await BalanceService.getBalance(user.token)
+      
+      if (currentBalance < order.amount) {
+        setError(`Недостаточно средств для оплаты. Требуется: ${order.amount}₽, доступно: ${currentBalance}₽`)
+        return
+      }
+
+      // Подтверждение оплаты
+      const confirmPayment = confirm(`Оплатить заказ #${order.id}?\n\nСумма: ${order.amount.toLocaleString('ru-RU')}₽\nСредства будут заблокированы до завершения работы.`)
+      
+      if (!confirmPayment) return
+
+      // Снимаем деньги с баланса (создаем эскроу)
+      await OrdersService.payOrder(user.token, order.id)
+
+      setSuccess(`Заказ #${order.id} оплачен. Средства заблокированы до завершения работы.`)
+      await loadOrders()
+    } catch (error: any) {
+      setError(error.message || 'Ошибка оплаты заказа')
     } finally {
       setActionLoading(null)
     }
@@ -93,6 +152,8 @@ export const OrdersPage: React.FC = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
+      case 'created':
+        return <Package className="h-4 w-4" />
       case 'pending':
         return <Clock className="h-4 w-4" />
       case 'accepted':
@@ -109,6 +170,7 @@ export const OrdersPage: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const variants: any = {
+      created: 'secondary',
       pending: 'secondary',
       accepted: 'default',
       in_progress: 'outline',
@@ -117,6 +179,7 @@ export const OrdersPage: React.FC = () => {
     }
 
     const labels: any = {
+      created: 'Новый заказ',
       pending: 'Ожидает подтверждения',
       accepted: 'Принят',
       in_progress: 'В работе',
@@ -134,13 +197,13 @@ export const OrdersPage: React.FC = () => {
 
   const getPaymentStatusBadge = (status: string) => {
     const variants: any = {
-      unpaid: 'destructive',
+      pending: 'destructive',
       paid: 'default',
       refunded: 'secondary'
     }
 
     const labels: any = {
-      unpaid: 'Не оплачен',
+      pending: 'Не оплачен',
       paid: 'Оплачен',
       refunded: 'Возвращен'
     }
@@ -320,16 +383,13 @@ export const OrdersPage: React.FC = () => {
                             </Button>
                           )}
                           
-                          {order.can_pay && order.payment_status === 'unpaid' && (
+                          {order.payment_status === 'pending' && (
                             <Button
                               size="sm"
                               disabled={actionLoading === order.id}
-                              onClick={() => {
-                                // TODO: Интеграция с платежной системой
-                                alert('Интеграция с платежной системой в разработке')
-                              }}
+                              onClick={() => handlePayOrder(order)}
                             >
-                              Оплатить
+                              {actionLoading === order.id ? 'Обработка...' : 'Оплатить'}
                             </Button>
                           )}
                           
@@ -353,6 +413,28 @@ export const OrdersPage: React.FC = () => {
                       {/* Действия для компаний */}
                       {isCompany() && (
                         <>
+                          {/* Новый заказ - только создан */}
+                          {order.status === 'created' && (
+                              <>
+                                <Button
+                                    size="sm"
+                                    disabled={actionLoading === order.id}
+                                    onClick={() => handleOrderAction(order.id, 'accept')}
+                                >
+                                  {actionLoading === order.id ? 'Принятие...' : 'Принять заказ'}
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    disabled={actionLoading === order.id}
+                                    onClick={() => handleOrderAction(order.id, 'reject')}
+                                >
+                                  {actionLoading === order.id ? 'Отклонение...' : 'Отклонить'}
+                                </Button>
+                              </>
+                          )}
+
+                          {/* Ожидает подтверждения */}
                           {order.status === 'pending' && (
                             <>
                               <Button
@@ -387,9 +469,20 @@ export const OrdersPage: React.FC = () => {
                             <Button
                               size="sm"
                               disabled={actionLoading === order.id}
-                              onClick={() => handleOrderAction(order.id, 'complete')}
+                              onClick={() => handleOrderAction(order.id, 'complete', order)}
                             >
                               {actionLoading === order.id ? 'Завершение...' : 'Завершить работу'}
+                            </Button>
+                          )}
+                          
+                          {/* Дополнительные кнопки для компаний */}
+                          {order.status === 'completed' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled
+                            >
+                              Заказ выполнен
                             </Button>
                           )}
                         </>

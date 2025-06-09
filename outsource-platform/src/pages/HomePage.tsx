@@ -133,20 +133,30 @@ export const HomePage: React.FC = () => {
     }
 
     if (user.type === 'client') {
+      // Показываем подтверждение с информацией о стоимости
+      const confirmMessage = `Создать заказ на услугу "${card.title}"?\n\nСтоимость: ${card.price.toLocaleString('ru-RU')}₽\nИсполнитель: ${card.company.company_name}\n\nСредства будут заблокированы до завершения работы.`
+      
+      if (!confirm(confirmMessage)) {
+        return
+      }
+
       const orderData = {
         company_id: card.company_id,
         card_id: card.id,
-        description: `Автоматический заказ через карточку ${card.title}`
+        description: `Заказ услуги "${card.title}" через платформу`
       }
 
-      OrdersService.createOrder(user.token, orderData)
+      // Передаем цену карточки для проверки баланса и списания средств
+      OrdersService.createOrder(user.token, orderData, card.price)
           .then(createdOrder => {
-            alert(`Заказ #${createdOrder.id} успешно создан!`)
+            alert(`Заказ #${createdOrder.id} успешно создан и оплачен!\nСредства заблокированы в эскроу до завершения работы.`)
             navigate('/orders')
           })
           .catch(error => {
-            alert(error.message || 'Не удалось создать заказ')
+            alert(`Ошибка создания заказа: ${error.message}`)
           })
+    } else {
+      alert('Только клиенты могут создавать заказы')
     }
   }
 

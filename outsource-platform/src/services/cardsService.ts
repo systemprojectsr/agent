@@ -8,7 +8,7 @@ export interface CreateCardRequest {
   price: number
 }
 
-export interface UpdateCardRequest extends CreateCardRequest {}
+export type UpdateCardRequest = CreateCardRequest
 
 export interface SearchCardsParams {
   q?: string
@@ -122,7 +122,7 @@ export class CardsService {
     
     const data = await response.json()
     
-    if (data.status_response?.status !== 'success') {
+    if (response.status !== 200) {
       throw new Error(data.error?.message || 'Failed to update service card')
     }
   }

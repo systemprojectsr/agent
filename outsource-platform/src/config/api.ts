@@ -79,8 +79,8 @@ export interface Order {
   company_id?: number
   card_id?: number
   amount: number
-  status: 'pending' | 'accepted' | 'in_progress' | 'completed' | 'cancelled'
-  payment_status: 'unpaid' | 'paid' | 'refunded'
+  status: 'created' | 'pending' | 'accepted' | 'in_progress' | 'completed' | 'cancelled'
+  payment_status: 'pending' | 'paid' | 'refunded'
   description: string
   created_at: string
   updated_at: string

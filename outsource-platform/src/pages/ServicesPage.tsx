@@ -90,6 +90,8 @@ export const ServicesPage: React.FC = () => {
       price: 0
     })
     setEditingCard(null)
+    setError('')
+    setSuccess('')
   }
 
   const openCreateDialog = () => {
@@ -106,7 +108,19 @@ export const ServicesPage: React.FC = () => {
       price: card.price
     })
     setEditingCard(card)
+    setError('')
+    setSuccess('')
     setDialogOpen(true)
+  }
+
+  const closeDialog = () => {
+    setDialogOpen(false)
+    resetForm()
+    // Очищаем сообщения с задержкой
+    setTimeout(() => {
+      setError('')
+      setSuccess('')
+    }, 100)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -128,8 +142,8 @@ export const ServicesPage: React.FC = () => {
         setSuccess('Услуга успешно создана')
       }
       
-      setDialogOpen(false)
-      resetForm()
+      // Закрываем диалог и обновляем список
+      closeDialog()
       await loadCards()
     } catch (err: any) {
       setError(err.message || 'Ошибка сохранения услуги')
@@ -286,7 +300,13 @@ export const ServicesPage: React.FC = () => {
           )}
 
           {/* Диалог создания/редактирования услуги */}
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog open={dialogOpen} onOpenChange={(open) => {
+            if (!open) {
+              closeDialog()
+            } else {
+              setDialogOpen(true)
+            }
+          }}>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>
@@ -375,7 +395,7 @@ export const ServicesPage: React.FC = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setDialogOpen(false)}
+                    onClick={closeDialog}
                     disabled={actionLoading}
                   >
                     Отмена

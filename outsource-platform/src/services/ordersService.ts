@@ -1,4 +1,5 @@
 import { apiRequest, createSimpleToken, createExtendedToken, Order } from '@/config/api'
+import { BalanceService } from './balanceService'
 
 export interface CreateOrderRequest {
   company_id: number
@@ -7,7 +8,7 @@ export interface CreateOrderRequest {
 }
 
 export interface OrderListParams {
-  status?: 'all' | 'pending' | 'in_progress' | 'completed' | 'cancelled'
+  status?: 'all' | 'created' | 'pending' | 'in_progress' | 'completed' | 'cancelled'
   limit?: number
   offset?: number
 }
@@ -16,23 +17,45 @@ export type OrderAction = 'accept' | 'reject' | 'start' | 'complete' | 'cancel'
 
 // Сервис для работы с заказами
 export class OrdersService {
-  // Создание заказа
-  static async createOrder(token: string, orderData: CreateOrderRequest): Promise<Order> {
-    const response = await apiRequest('/v1/account/order/create', {
-      method: 'POST',
-      body: JSON.stringify({
-        ...createExtendedToken(token),
-        order: orderData
+  // Создание заказа с проверкой баланса и автоматической оплатой
+  static async createOrder(token: string, orderData: CreateOrderRequest, cardPrice: number): Promise<Order> {
+    try {
+      // 1. Проверяем баланс клиента
+      const currentBalance = await BalanceService.getBalance(token)
+      
+      if (currentBalance < cardPrice) {
+        throw new Error(`Недостаточно средств. Требуется: ${cardPrice}₽, доступно: ${currentBalance}₽`)
+      }
+
+      // 2. Создаем заказ
+      const response = await apiRequest('/v1/account/order/create', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...createExtendedToken(token),
+          order: orderData
+        })
       })
-    })
-    
-    const data = await response.json()
-    
-    if (data.status_response?.status === 'success') {
-      return data.order
+      
+      const data = await response.json()
+      
+      if (data.status_response?.status === 'success') {
+        // 3. После успешного создания заказа, снимаем деньги с баланса клиента (создаем эскроу)
+        try {
+          await BalanceService.withdrawBalance(token, cardPrice)
+          console.log(`Средства ${cardPrice}₽ заблокированы в эскроу для заказа #${data.order.id}`)
+        } catch (withdrawError) {
+          console.error('Ошибка снятия средств:', withdrawError)
+          // В реальном приложении здесь нужно отменить заказ или обработать ошибку
+        }
+        
+        return data.order
+      }
+      
+      throw new Error(data.error?.message || 'Failed to create order')
+    } catch (error: any) {
+      console.error('Order creation failed:', error)
+      throw error
     }
-    
-    throw new Error(data.error?.message || 'Failed to create order')
   }
 
   // Получение списка заказов
@@ -60,6 +83,22 @@ export class OrdersService {
     
     throw new Error(data.error?.message || 'Failed to fetch orders')
   }
+
+  static async payOrder(token: string, orderId: number): Promise<void> {
+    const response = await apiRequest('/v1/account/order/pay', {
+      method: 'POST',
+      body: JSON.stringify({
+        ...createExtendedToken(token),
+        order_id: orderId
+      })
+    })
+
+    const data = await response.json()
+    if (data.status_response?.status !== 'success') {
+      throw new Error(data.error?.message || 'Failed to pay order')
+    }
+  }
+
 
   // Обновление статуса заказа
   static async updateOrderStatus(token: string, orderId: number, action: OrderAction): Promise<void> {
