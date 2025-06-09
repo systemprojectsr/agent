@@ -64,7 +64,13 @@ export const OrdersPage: React.FC = () => {
 
     try {
       setActionLoading(orderId)
-      
+
+      if (action === 'cancel') {
+        // Отмена заказа клиентом или компанией
+        await OrdersService.updateOrderStatus(user.token, orderId, action);
+        setSuccess(`Заказ отменен. Средства возвращены на баланс клиента.`);
+      }
+
       // Для завершения заказа компанией - переводим деньги из эскроу
       if (action === 'complete' && order && isCompany()) {
         // Сначала завершаем заказ
@@ -89,7 +95,7 @@ export const OrdersPage: React.FC = () => {
           complete: 'Заказ завершен',
           cancel: 'Заказ отменен'
         }
-        
+
         setSuccess(messages[action] || 'Статус заказа обновлен')
       }
       
@@ -372,7 +378,7 @@ export const OrdersPage: React.FC = () => {
                       {/* Действия для клиентов */}
                       {isClient() && (
                         <>
-                          {order.can_cancel && (
+                          {order.status == 'accepted' || order.status == 'in_progress' && (
                             <Button
                               variant="destructive"
                               size="sm"
@@ -393,7 +399,7 @@ export const OrdersPage: React.FC = () => {
                             </Button>
                           )}
                           
-                          {order.can_rate && order.status === 'completed' && (
+                          {order.status === 'completed' && (
                             <Dialog>
                               <DialogTrigger asChild>
                                 <Button
@@ -454,8 +460,8 @@ export const OrdersPage: React.FC = () => {
                               </Button>
                             </>
                           )}
-                          
-                          {order.status === 'accepted' && (
+
+                          {order.status === 'accepted' || order.status == 'paid' && (
                             <Button
                               size="sm"
                               disabled={actionLoading === order.id}
@@ -468,10 +474,10 @@ export const OrdersPage: React.FC = () => {
                           {order.status === 'in_progress' && (
                             <Button
                               size="sm"
-                              disabled={actionLoading === order.id}
+                              disabled={order.status !== 'in_progress' || actionLoading === order.id}
                               onClick={() => handleOrderAction(order.id, 'complete', order)}
                             >
-                              {actionLoading === order.id ? 'Завершение...' : 'Завершить работу'}
+                              {actionLoading === order.id ? 'Завершение...' : 'Ожидание подтверждения работника'}
                             </Button>
                           )}
                           

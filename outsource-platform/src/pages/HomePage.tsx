@@ -198,7 +198,7 @@ export const HomePage: React.FC = () => {
                   placeholder="Что вы ищете?"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="border-0 focus:ring-0 text-lg"
+                  className="border-0 focus:ring-0 text-lg text-gray-800"
                 />
               </div>
               <Button onClick={handleSearch} size="lg" className="bg-blue-600 hover:bg-blue-700">

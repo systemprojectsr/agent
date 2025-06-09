@@ -1,5 +1,5 @@
 // API конфигурация
-export const API_BASE_URL = 'http://localhost:8080'
+export const API_BASE_URL = 'https://auth.tomsk-center.ru'
 
 // Типы токенов для разных операций
 export interface SimpleTokenRequest {
@@ -79,7 +79,7 @@ export interface Order {
   company_id?: number
   card_id?: number
   amount: number
-  status: 'created' | 'pending' | 'accepted' | 'in_progress' | 'completed' | 'cancelled'
+  status: 'created' | 'pending' | 'accepted' | 'in_progress' | 'completed' | 'cancelled' | 'paid'
   payment_status: 'pending' | 'paid' | 'refunded'
   description: string
   created_at: string
