@@ -13,6 +13,11 @@ type BalanceRepository interface {
 	CreateTransaction(transaction *database.BalanceTransaction) error
 	GetTransactionsByUser(userID uint, userType string, limit, offset int) ([]database.BalanceTransaction, error)
 	GetTransactionCountByUser(userID uint, userType string) (int, error)
+	
+	// Методы для работы с транзакциями
+	UpdateClientBalanceInTx(tx *gorm.DB, clientID uint, amount float64) error
+	UpdateCompanyBalanceInTx(tx *gorm.DB, companyID uint, amount float64) error
+	CreateTransactionInTx(tx *gorm.DB, transaction *database.BalanceTransaction) error
 }
 
 type balanceRepository struct {
@@ -63,6 +68,21 @@ func (r *balanceRepository) GetTransactionCountByUser(userID uint, userType stri
 	err := r.db.Model(&database.BalanceTransaction{}).
 		Where("user_id = ? AND user_type = ?", userID, userType).Count(&count).Error
 	return int(count), err
+}
+
+// Методы для работы с транзакциями
+func (r *balanceRepository) UpdateClientBalanceInTx(tx *gorm.DB, clientID uint, amount float64) error {
+	return tx.Model(&database.ClientDB{}).Where("id = ?", clientID).
+		Update("balance", gorm.Expr("balance + ?", amount)).Error
+}
+
+func (r *balanceRepository) UpdateCompanyBalanceInTx(tx *gorm.DB, companyID uint, amount float64) error {
+	return tx.Model(&database.CompanyDB{}).Where("id = ?", companyID).
+		Update("balance", gorm.Expr("balance + ?", amount)).Error
+}
+
+func (r *balanceRepository) CreateTransactionInTx(tx *gorm.DB, transaction *database.BalanceTransaction) error {
+	return tx.Create(transaction).Error
 }
 
 func NewBalanceRepository(db *gorm.DB) BalanceRepository {

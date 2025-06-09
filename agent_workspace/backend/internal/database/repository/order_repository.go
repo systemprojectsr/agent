@@ -21,6 +21,12 @@ type OrderRepository interface {
 	GetByWorkerToken(token string) (*database.Order, error)
 	Update(order *database.Order) error
 	GetAllActive(limit, offset int) ([]database.Order, error)
+	UpdateStatusesInTx(tx *gorm.DB, id uint, status, paymentStatus string) error
+
+	// Методы для работы с транзакциями
+	BeginTransaction() *gorm.DB
+	UpdateStatusInTx(tx *gorm.DB, id uint, status string) error
+	UpdatePaymentStatusInTx(tx *gorm.DB, id uint, paymentStatus string) error
 }
 
 type orderRepository struct {
@@ -41,6 +47,15 @@ func (r *orderRepository) GetByID(id uint) (*database.Order, error) {
 		return nil, err
 	}
 	return &order, nil
+}
+
+func (r *orderRepository) UpdateStatusesInTx(tx *gorm.DB, id uint, status, paymentStatus string) error {
+	return tx.Model(&database.Order{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"status":         status,
+			"payment_status": paymentStatus,
+		}).Error
 }
 
 func (r *orderRepository) GetByClientID(clientID uint, limit, offset int) ([]database.Order, error) {
@@ -76,7 +91,7 @@ func (r *orderRepository) GetByWorkerToken(token string) (*database.Order, error
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &order, nil
 }
 
@@ -107,11 +122,11 @@ func (r *orderRepository) GetByIDWithRelations(id uint) (*database.Order, error)
 func (r *orderRepository) GetOrdersByClientWithStatus(clientID uint, status string, limit, offset int) ([]database.Order, error) {
 	var orders []database.Order
 	query := r.db.Preload("Company").Preload("Card").Where("client_id = ?", clientID)
-	
+
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}
-	
+
 	err := query.Limit(limit).Offset(offset).Order("created_at DESC").Find(&orders).Error
 	return orders, err
 }
@@ -119,11 +134,11 @@ func (r *orderRepository) GetOrdersByClientWithStatus(clientID uint, status stri
 func (r *orderRepository) CountOrdersByClientWithStatus(clientID uint, status string) (int, error) {
 	var count int64
 	query := r.db.Model(&database.Order{}).Where("client_id = ?", clientID)
-	
+
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}
-	
+
 	err := query.Count(&count).Error
 	return int(count), err
 }
@@ -131,11 +146,11 @@ func (r *orderRepository) CountOrdersByClientWithStatus(clientID uint, status st
 func (r *orderRepository) GetOrdersByCompanyWithStatus(companyID uint, status string, limit, offset int) ([]database.Order, error) {
 	var orders []database.Order
 	query := r.db.Preload("Client").Preload("Card").Where("company_id = ?", companyID)
-	
+
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}
-	
+
 	err := query.Limit(limit).Offset(offset).Order("created_at DESC").Find(&orders).Error
 	return orders, err
 }
@@ -143,13 +158,26 @@ func (r *orderRepository) GetOrdersByCompanyWithStatus(companyID uint, status st
 func (r *orderRepository) CountOrdersByCompanyWithStatus(companyID uint, status string) (int, error) {
 	var count int64
 	query := r.db.Model(&database.Order{}).Where("company_id = ?", companyID)
-	
+
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}
-	
+
 	err := query.Count(&count).Error
 	return int(count), err
+}
+
+// Методы для работы с транзакциями
+func (r *orderRepository) BeginTransaction() *gorm.DB {
+	return r.db.Begin()
+}
+
+func (r *orderRepository) UpdateStatusInTx(tx *gorm.DB, id uint, status string) error {
+	return tx.Model(&database.Order{}).Where("id = ?", id).Update("status", status).Error
+}
+
+func (r *orderRepository) UpdatePaymentStatusInTx(tx *gorm.DB, id uint, paymentStatus string) error {
+	return tx.Model(&database.Order{}).Where("id = ?", id).Update("payment_status", paymentStatus).Error
 }
 
 func NewOrderRepository(db *gorm.DB) OrderRepository {

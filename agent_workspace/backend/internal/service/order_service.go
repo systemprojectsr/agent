@@ -103,8 +103,11 @@ func (s *orderService) PayForOrder(orderID, clientID uint) error {
 	if order.ClientID != clientID {
 		return errors.New("unauthorized: order does not belong to this client")
 	}
-	
-	// Проверяем баланс клиента
+
+	if order.Status != "created" && order.Status != "pending" && order.Status != "accepted" {
+		return errors.New("order cannot be paid in current status")
+	}
+
 	balance, err := s.balanceRepo.GetClientBalance(clientID)
 	if err != nil {
 		return err
@@ -114,13 +117,21 @@ func (s *orderService) PayForOrder(orderID, clientID uint) error {
 		return errors.New("insufficient balance")
 	}
 
-	// Списываем деньги с клиента в эскроу
-	err = s.balanceRepo.UpdateClientBalance(clientID, -order.Amount)
-	if err != nil {
+	tx := s.orderRepo.BeginTransaction()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
+
+	// Списываем деньги
+	if err := s.balanceRepo.UpdateClientBalanceInTx(tx, clientID, -order.Amount); err != nil {
+		tx.Rollback()
 		return err
 	}
 
-	// Создаем эскроу транзакцию
+	// Эскроу транзакция
 	escrowTx := &database.EscrowTransaction{
 		OrderID:  order.ID,
 		Amount:   order.Amount,
@@ -129,14 +140,12 @@ func (s *orderService) PayForOrder(orderID, clientID uint) error {
 		FromUser: "client",
 		ToUser:   "escrow",
 	}
-	err = s.escrowRepo.CreateTransaction(escrowTx)
-	if err != nil {
-		// Откатываем списание
-		s.balanceRepo.UpdateClientBalance(clientID, order.Amount)
+	if err := s.escrowRepo.CreateTransactionInTx(tx, escrowTx); err != nil {
+		tx.Rollback()
 		return err
 	}
 
-	// Создаем транзакцию баланса
+	// Баланс транзакция
 	balanceTx := &database.BalanceTransaction{
 		UserID:      clientID,
 		UserType:    "client",
@@ -146,23 +155,37 @@ func (s *orderService) PayForOrder(orderID, clientID uint) error {
 		OrderID:     &order.ID,
 		Description: fmt.Sprintf("Оплата заказа #%d", order.ID),
 	}
-	s.balanceRepo.CreateTransaction(balanceTx)
-
-	// Обновляем статус заказа
-	err = s.orderRepo.UpdateStatus(orderID, "paid")
-	if err != nil {
+	if err := s.balanceRepo.CreateTransactionInTx(tx, balanceTx); err != nil {
+		tx.Rollback()
 		return err
 	}
 
-	// Генерируем ссылку для работника
+	// Обновляем статус и payment_status в одной операции
+	if err := tx.Model(&database.Order{}).Where("id = ?", orderID).
+		Updates(map[string]interface{}{"status": "paid", "payment_status": "paid"}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Генерация workerURL прямо в транзакции
 	workerLink, err := s.workerLinkRepo.GenerateWorkerLink(orderID)
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
-	// Обновляем URL для работника в заказе
-	order.WorkerCompleteURL = fmt.Sprintf("https://auth.tomsk-center.ru/worker/complete/%s", workerLink.Token)
-	return s.orderRepo.Update(order)
+	if err := tx.Model(&database.Order{}).Where("id = ?", orderID).
+		Update("worker_complete_url", fmt.Sprintf("https://auth.tomsk-center.ru/worker/complete/%s", workerLink.Token)).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Фиксируем транзакцию
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *orderService) StartOrder(orderID, companyID uint) error {
@@ -215,17 +238,25 @@ func (s *orderService) FinishOrder(orderID, clientID uint) error {
 		return errors.New("unauthorized: order does not belong to this client")
 	}
 
+	// Проверяем статусы заказа
 	if order.Status != "completed" {
 		return errors.New("order cannot be finished in current status")
 	}
 
-	// Переводим деньги из эскроу компании
-	err = s.balanceRepo.UpdateCompanyBalance(order.CompanyID, order.Amount)
-	if err != nil {
-		return err
+	if order.PaymentStatus != "paid" {
+		return errors.New("order payment is not in paid status")
 	}
 
-	// Создаем эскроу транзакцию
+	// Начинаем транзакцию БД
+	tx := s.orderRepo.BeginTransaction()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
+
+	// Создаем эскроу транзакцию ПЕРЕД переводом денег
 	escrowTx := &database.EscrowTransaction{
 		OrderID:  order.ID,
 		Amount:   order.Amount,
@@ -234,8 +265,16 @@ func (s *orderService) FinishOrder(orderID, clientID uint) error {
 		FromUser: "escrow",
 		ToUser:   "company",
 	}
-	err = s.escrowRepo.CreateTransaction(escrowTx)
+	err = s.escrowRepo.CreateTransactionInTx(tx, escrowTx)
 	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Переводим деньги из эскроу компании
+	err = s.balanceRepo.UpdateCompanyBalanceInTx(tx, order.CompanyID, order.Amount)
+	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
@@ -249,10 +288,21 @@ func (s *orderService) FinishOrder(orderID, clientID uint) error {
 		OrderID:     &order.ID,
 		Description: fmt.Sprintf("Оплата за заказ #%d", order.ID),
 	}
-	s.balanceRepo.CreateTransaction(balanceTx)
+	err = s.balanceRepo.CreateTransactionInTx(tx, balanceTx)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 
 	// Обновляем статус заказа
-	return s.orderRepo.UpdateStatus(orderID, "finished")
+	err = s.orderRepo.UpdateStatusInTx(tx, orderID, "finished")
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Фиксируем транзакцию
+	return tx.Commit().Error
 }
 
 func (s *orderService) CancelOrder(orderID uint, userID uint, userType string) error {
@@ -270,18 +320,22 @@ func (s *orderService) CancelOrder(orderID uint, userID uint, userType string) e
 	}
 
 	// Можно отменить только созданные или оплаченные заказы
-	if order.Status != "created" && order.Status != "paid" {
+	if order.Status != "created" && order.Status != "paid" && order.Status != "in_progress" {
 		return errors.New("order cannot be cancelled in current status")
 	}
 
-	// Если заказ был оплачен, возвращаем деньги клиенту
-	if order.Status == "paid" {
-		err = s.balanceRepo.UpdateClientBalance(order.ClientID, order.Amount)
-		if err != nil {
-			return err
+	// Начинаем транзакцию БД
+	tx := s.orderRepo.BeginTransaction()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
 		}
+	}()
 
-		// Создаем эскроу транзакцию возврата
+	// Если заказ был оплачен, возвращаем деньги клиенту
+	if order.Status == "paid" && order.PaymentStatus == "paid" {
+		// Создаем эскроу транзакцию возврата ПЕРЕД возвратом денег
 		escrowTx := &database.EscrowTransaction{
 			OrderID:  order.ID,
 			Amount:   order.Amount,
@@ -290,7 +344,18 @@ func (s *orderService) CancelOrder(orderID uint, userID uint, userType string) e
 			FromUser: "escrow",
 			ToUser:   "client",
 		}
-		s.escrowRepo.CreateTransaction(escrowTx)
+		err = s.escrowRepo.CreateTransactionInTx(tx, escrowTx)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		// Возвращаем деньги клиенту
+		err = s.balanceRepo.UpdateClientBalanceInTx(tx, order.ClientID, order.Amount)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
 
 		// Создаем транзакцию баланса
 		balanceTx := &database.BalanceTransaction{
@@ -302,10 +367,29 @@ func (s *orderService) CancelOrder(orderID uint, userID uint, userType string) e
 			OrderID:     &order.ID,
 			Description: fmt.Sprintf("Возврат за отмененный заказ #%d", order.ID),
 		}
-		s.balanceRepo.CreateTransaction(balanceTx)
+		err = s.balanceRepo.CreateTransactionInTx(tx, balanceTx)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		// Обновляем payment_status на refunded
+		err = s.orderRepo.UpdatePaymentStatusInTx(tx, orderID, "refunded")
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
-	return s.orderRepo.UpdateStatus(orderID, "cancelled")
+	// Обновляем статус заказа на cancelled
+	err = s.orderRepo.UpdateStatusInTx(tx, orderID, "cancelled")
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Фиксируем транзакцию
+	return tx.Commit().Error
 }
 
 func (s *orderService) GetAllOrders(page, limit int) ([]database.Order, error) {

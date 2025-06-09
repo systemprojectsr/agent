@@ -12,6 +12,9 @@ type EscrowRepository interface {
 	CreateTransaction(transaction *database.EscrowTransaction) error
 	GetByOrderID(orderID uint) ([]database.EscrowTransaction, error)
 	UpdateTransactionStatus(id uint, status string) error
+	
+	// Метод для работы с транзакциями
+	CreateTransactionInTx(tx *gorm.DB, transaction *database.EscrowTransaction) error
 }
 
 type WorkerLinkRepository interface {
@@ -81,6 +84,11 @@ func (r *workerLinkRepository) GenerateWorkerLink(orderID uint) (*database.Worke
 	}
 
 	return link, nil
+}
+
+// Метод для работы с транзакциями
+func (r *escrowRepository) CreateTransactionInTx(tx *gorm.DB, transaction *database.EscrowTransaction) error {
+	return tx.Create(transaction).Error
 }
 
 func NewEscrowRepository(db *gorm.DB) EscrowRepository {
