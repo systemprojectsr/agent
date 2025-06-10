@@ -14,7 +14,7 @@ type ClientController interface {
 	Login(c *gin.Context)
 	LoginOld(c *gin.Context, request *api.GeneralAuth)
 	GetAccount(c *gin.Context, request *api.TokenAccess)
-	UpdateProfile(c *gin.Context, request *api.TokenUpdateClientProfile)
+	UpdateProfile(c *gin.Context, request *api.TokenUpdateClientProfileDouble)
 }
 
 type clientController struct {
@@ -27,13 +27,13 @@ func (controller clientController) Signup(c *gin.Context) {
 		api.GetErrorJSON(c, http.StatusBadRequest, "JSON is invalid: "+err.Error())
 		return
 	}
-	
+
 	// Валидация обязательных полей
 	if request.Email == "" || request.Password == "" || request.FullName == "" || request.Phone == "" {
 		api.GetErrorJSON(c, http.StatusBadRequest, "Missing required fields: email, password, full_name, phone")
 		return
 	}
-	
+
 	client, err := controller.service.SignupSimple(request)
 	if err != nil {
 		api.GetErrorJSON(c, http.StatusPreconditionFailed, err.Error())
@@ -56,19 +56,19 @@ func (controller clientController) Login(c *gin.Context) {
 		api.GetErrorJSON(c, http.StatusBadRequest, "JSON is invalid: "+err.Error())
 		return
 	}
-	
+
 	// Валидация обязательных полей
 	if request.Email == "" || request.Password == "" {
 		api.GetErrorJSON(c, http.StatusBadRequest, "Missing required fields: email, password")
 		return
 	}
-	
+
 	dbUser, err := controller.service.LoginSimple(request)
 	if err != nil {
 		api.GetErrorJSON(c, http.StatusPreconditionFailed, err.Error())
 		return
 	}
-	
+
 	jwtToken := security.CreateToken(false, dbUser.ID, internal.LifeTimeJWT)
 	if jwtToken == "" {
 		api.GetErrorJSON(c, http.StatusBadRequest, "the created jwt was faulty")
@@ -127,7 +127,7 @@ func (controller clientController) GetAccount(c *gin.Context, request *api.Token
 	})
 }
 
-func (controller clientController) UpdateProfile(c *gin.Context, request *api.TokenUpdateClientProfile) {
+func (controller clientController) UpdateProfile(c *gin.Context, request *api.TokenUpdateClientProfileDouble) {
 	// Извлекаем информацию о пользователе из токена
 	userInfo, err := ExtractUserFromToken(request.TokenAccess.User.Login.Token)
 	if err != nil {

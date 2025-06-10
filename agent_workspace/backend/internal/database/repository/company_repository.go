@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"core/internal/api"
 	"core/internal/database"
 	"core/internal/security"
 	"errors"
@@ -17,10 +18,93 @@ type CompanyRepository interface {
 	PreloadDB(name string, company *database.CompanyDB, limit int, page int)
 	DeleteCard(id int) bool
 	Update(company *database.CompanyDB) error
+	GetCompanyStats(companyID uint) (*api.CompanyStats, error)
 }
 
 type companyRepository struct {
 	db *gorm.DB
+}
+
+func (r *companyRepository) GetCompanyStats(companyID uint) (*api.CompanyStats, error) {
+	var (
+		totalOrders      int64
+		activeOrders     int64
+		completedOrders  int64
+		totalRevenue     float64
+		averageRating    float64
+		reviewCount      int64
+		totalServices    int64
+		balanceAvailable float64
+	)
+
+	// Подсчет общего количества заказов
+	if err := r.db.Model(&database.Order{}).
+		Where("company_id = ?", companyID).
+		Count(&totalOrders).Error; err != nil {
+		return nil, err
+	}
+
+	// Подсчет активных заказов
+	if err := r.db.Model(&database.Order{}).
+		Where("company_id = ? AND status IN ?", companyID, []string{"created", "paid", "in_progress"}).
+		Count(&activeOrders).Error; err != nil {
+		return nil, err
+	}
+
+	// Подсчет завершенных заказов
+	if err := r.db.Model(&database.Order{}).
+		Where("company_id = ? AND status = ?", companyID, "finished").
+		Count(&completedOrders).Error; err != nil {
+		return nil, err
+	}
+
+	// Подсчет общей выручки по завершенным заказам
+	if err := r.db.Model(&database.Order{}).
+		Where("company_id = ? AND status = ?", companyID, "finished").
+		Select("COALESCE(SUM(amount), 0)").Scan(&totalRevenue).Error; err != nil {
+		return nil, err
+	}
+
+	// Средний рейтинг
+	if err := r.db.Model(&database.Review{}).
+		Where("company_id = ?", companyID).
+		Select("COALESCE(AVG(rating), 0)").Scan(&averageRating).Error; err != nil {
+		return nil, err
+	}
+
+	// Количество отзывов
+	if err := r.db.Model(&database.Review{}).
+		Where("company_id = ?", companyID).
+		Count(&reviewCount).Error; err != nil {
+		return nil, err
+	}
+
+	// Количество услуг (cards)
+	if err := r.db.Model(&database.Card{}).
+		Where("company_id = ?", companyID).
+		Count(&totalServices).Error; err != nil {
+		return nil, err
+	}
+
+	// Баланс компании
+	if err := r.db.Model(&database.CompanyDB{}).
+		Where("id = ?", companyID).
+		Select("COALESCE(balance, 0)").Scan(&balanceAvailable).Error; err != nil {
+		return nil, err
+	}
+
+	return &api.CompanyStats{
+		TotalServices:    int(totalServices),
+		TotalOrders:      int(totalOrders),
+		ActiveOrders:     int(activeOrders),
+		CompletedOrders:  int(completedOrders),
+		TotalRevenue:     totalRevenue,
+		TotalEarnings:    totalRevenue, // Если нужно считать TotalEarnings = TotalRevenue
+		AverageRating:    averageRating,
+		TotalReviews:     int(reviewCount),
+		ReviewCount:      int(reviewCount),
+		BalanceAvailable: balanceAvailable,
+	}, nil
 }
 
 func (repository *companyRepository) PreloadDB(name string, company *database.CompanyDB, limit int, page int) {

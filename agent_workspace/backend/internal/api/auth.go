@@ -200,6 +200,11 @@ type TokenUpdateClientProfile struct {
 	Profile     ClientProfileInfo `json:"profile"`
 }
 
+type TokenUpdateClientProfileDouble struct {
+	TokenAccess `json:"token_access"`
+	Profile     ClientProfileInfo `json:"profile"`
+}
+
 // ================================
 // BALANCE STRUCTURES
 // ================================

@@ -20,7 +20,7 @@ type CompanyService interface {
 	CreateCard(request *api.TokenCreateCard) (error, database.Card)
 	ListCard(request *api.TokenListCard, limit string, page string) (error, []database.Card)
 	DeleteCard(request *api.TokenDeleteCard) (error, bool)
-	UpdateProfile(companyID uint, profile api.ProfileInfo) error
+	UpdateProfile(companyID uint, profile api.ClientProfileInfo) error
 	GetCompanyStats(companyID uint) (*api.CompanyStats, error)
 	UpdateCard(companyID uint, cardID uint, cardData api.CardInfo) error
 }
@@ -209,16 +209,13 @@ func (service *companyService) ListCard(request *api.TokenListCard, limit string
 	}
 }
 
-func (service *companyService) UpdateProfile(companyID uint, profile api.ProfileInfo) error {
+func (service *companyService) UpdateProfile(companyID uint, profile api.ClientProfileInfo) error {
 	company, err := service.GetCompany(companyID)
 	if err != nil {
 		return err
 	}
 
 	// Обновляем поля профиля
-	if profile.CompanyName != "" {
-		company.CompanyName = profile.CompanyName
-	}
 	if profile.FullName != "" {
 		company.FullName = profile.FullName
 	}
@@ -228,37 +225,18 @@ func (service *companyService) UpdateProfile(companyID uint, profile api.Profile
 	if profile.Phone != "" {
 		company.Phone = profile.Phone
 	}
-	if profile.Address != "" {
-		company.Address = profile.Address
-	}
-	if profile.TypeService != "" {
-		company.TypeService = profile.TypeService
-	}
-	if profile.PositionAgent != "" {
-		company.PositionAgent = profile.PositionAgent
-	}
 	if profile.Photo != "" {
 		company.Photo = profile.Photo
-	}
-	if len(profile.Documents) > 0 {
-		company.Documents = profile.Documents
 	}
 
 	return service.repository.Update(&company)
 }
 
 func (service *companyService) GetCompanyStats(companyID uint) (*api.CompanyStats, error) {
-	// Здесь нужно будет получить статистику из репозитория
-	// Пока возвращаем заглушку - реальная реализация потребует дополнительных методов в репозитории
-	stats := &api.CompanyStats{
-		TotalOrders:     0,
-		ActiveOrders:    0,
-		CompletedOrders: 0,
-		TotalRevenue:    0.0,
-		AverageRating:   0.0,
-		ReviewCount:     0,
+	stats, err := service.repository.GetCompanyStats(companyID)
+	if err != nil {
+		return nil, err
 	}
-
 	return stats, nil
 }
 

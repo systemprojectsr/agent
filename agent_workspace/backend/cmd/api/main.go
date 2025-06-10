@@ -681,13 +681,13 @@ func main() {
 			{
 				profileGroup.POST("/update", func(c *gin.Context) {
 					// Сначала парсим базовую часть для получения токена
-					var baseRequest api.TokenAccess
+					var baseRequest api.TokenUpdateClientProfileDouble
 					if err := c.ShouldBind(&baseRequest); err != nil {
 						api.GetErrorJSON(c, http.StatusBadRequest, "JSON is invalid")
 						return
 					}
 
-					ok, mapClaims := security.CheckToken(baseRequest.User.Login.Token)
+					ok, mapClaims := security.CheckToken(baseRequest.TokenAccess.User.Login.Token)
 					if mapClaims == nil {
 						api.GetErrorJSON(c, http.StatusBadRequest, "The token is invalid")
 						return
@@ -698,19 +698,9 @@ func main() {
 
 						// Переходим к парсингу полного запроса в зависимости от типа пользователя
 						if isCompany {
-							request := &api.TokenUpdateProfile{}
-							if err := c.ShouldBind(request); err != nil {
-								api.GetErrorJSON(c, http.StatusBadRequest, "JSON is invalid")
-								return
-							}
-							companyController.UpdateProfile(c, request)
+							companyController.UpdateProfile(c, &baseRequest)
 						} else {
-							request := &api.TokenUpdateClientProfile{}
-							if err := c.ShouldBind(request); err != nil {
-								api.GetErrorJSON(c, http.StatusBadRequest, "JSON is invalid")
-								return
-							}
-							clientController.UpdateProfile(c, request)
+							clientController.UpdateProfile(c, &baseRequest)
 						}
 					} else {
 						api.GetErrorJSON(c, http.StatusForbidden, "The token had expired")

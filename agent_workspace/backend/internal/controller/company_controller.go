@@ -17,7 +17,7 @@ type CompanyController interface {
 	CreateCard(c *gin.Context, request *api.TokenCreateCard)
 	ListCard(c *gin.Context, request *api.TokenListCard, limit string, page string)
 	DeleteCard(c *gin.Context, request *api.TokenDeleteCard)
-	UpdateProfile(c *gin.Context, request *api.TokenUpdateProfile)
+	UpdateProfile(c *gin.Context, request *api.TokenUpdateClientProfileDouble)
 	GetStats(c *gin.Context, request *api.TokenCompanyStats)
 	UpdateCard(c *gin.Context, request *api.TokenUpdateCard)
 }
@@ -187,7 +187,7 @@ func (controller companyController) ListCard(c *gin.Context, request *api.TokenL
 	}
 }
 
-func (controller companyController) UpdateProfile(c *gin.Context, request *api.TokenUpdateProfile) {
+func (controller companyController) UpdateProfile(c *gin.Context, request *api.TokenUpdateClientProfileDouble) {
 	userInfo, err := ExtractUserFromToken(request.TokenAccess.User.Login.Token)
 	if err != nil {
 		api.GetErrorJSON(c, http.StatusUnauthorized, err.Error())
