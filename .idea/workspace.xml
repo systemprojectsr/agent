@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="143e7ec1-6433-49f4-b7a7-b5f9dd89231a" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/agent_workspace/backend/cmd/api/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/agent_workspace/backend/cmd/api/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent_workspace/backend/internal/api/auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/agent_workspace/backend/internal/api/auth.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent_workspace/backend/internal/controller/client_controller.go" beforeDir="false" afterPath="$PROJECT_DIR$/agent_workspace/backend/internal/controller/client_controller.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent_workspace/backend/internal/controller/company_controller.go" beforeDir="false" afterPath="$PROJECT_DIR$/agent_workspace/backend/internal/controller/company_controller.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent_workspace/backend/internal/database/repository/company_repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/agent_workspace/backend/internal/database/repository/company_repository.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent_workspace/backend/internal/service/company_service.go" beforeDir="false" afterPath="$PROJECT_DIR$/agent_workspace/backend/internal/service/company_service.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/outsource-platform/src/config/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/outsource-platform/src/config/api.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/outsource-platform/src/pages/BalancePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/outsource-platform/src/pages/BalancePage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/outsource-platform/src/pages/DashboardPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/outsource-platform/src/pages/DashboardPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/outsource-platform/src/pages/HomePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/outsource-platform/src/pages/HomePage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/outsource-platform/src/pages/NotificationsPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/outsource-platform/src/pages/NotificationsPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/outsource-platform/src/pages/OrdersPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/outsource-platform/src/pages/OrdersPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/outsource-platform/src/pages/ServicesPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/outsource-platform/src/pages/ServicesPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/outsource-platform/src/services/balanceService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/outsource-platform/src/services/balanceService.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/outsource-platform/src/services/notificationsService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/outsource-platform/src/services/notificationsService.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/outsource-platform/src/services/ordersService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/outsource-platform/src/services/ordersService.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/outsource-platform/src/services/profileService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/outsource-platform/src/services/profileService.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="2yGpbHaPNhUSWjEDTal7aQtjjzU" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Attach to Node.js/Chrome.Unnamed.executor": "Debug",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "D:/ProjectOther/Frontend_hse_agent/outsource-platform",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "ts.external.directory.path": "D:\\ProjectOther\\Frontend_hse_agent\\outsource-platform\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-deb605915726-JavaScript-WS-243.22562.222" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="143e7ec1-6433-49f4-b7a7-b5f9dd89231a" name="Changes" comment="" />
+      <created>1749470833483</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1749470833483</updated>
+      <workItem from="1749470834534" duration="13460000" />
+      <workItem from="1749488784122" duration="6387000" />
+      <workItem from="1749544447158" duration="7370000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/outsource-platform/src/pages/OrdersPage.tsx</url>
+          <line>386</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/outsource-platform/src/services/ordersService.ts</url>
+          <line>44</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
