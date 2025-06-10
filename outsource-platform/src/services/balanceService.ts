@@ -35,7 +35,7 @@ export class BalanceService {
     
     const data = await response.json()
     
-    if (data.status_response?.status === 'success') {
+    if (data.message === 'Balance deposited successfully') {
       return data.balance
     }
     

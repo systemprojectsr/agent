@@ -44,6 +44,7 @@ export const BalancePage: React.FC = () => {
   const [withdrawAmount, setWithdrawAmount] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const { isCompany } = useAuth()
 
   useEffect(() => {
     if (user?.token) {
@@ -232,14 +233,16 @@ export const BalancePage: React.FC = () => {
                       </DialogTrigger>
                     </Dialog>
 
-                    <Dialog open={withdrawDialog} onOpenChange={setWithdrawDialog}>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" className="flex items-center gap-2">
-                          <Minus className="h-4 w-4" />
-                          Вывести
-                        </Button>
-                      </DialogTrigger>
-                    </Dialog>
+                    {isCompany() && (
+                        <Dialog open={withdrawDialog} onOpenChange={setWithdrawDialog}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" className="flex items-center gap-2">
+                              <Minus className="h-4 w-4" />
+                              Вывести
+                            </Button>
+                          </DialogTrigger>
+                        </Dialog>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -329,7 +332,7 @@ export const BalancePage: React.FC = () => {
                             ? 'text-green-600 font-medium'
                             : 'text-red-600 font-medium'
                         }>
-                          {transaction.type === 'deposit' || transaction.type === 'refund' ? '+' : '-'}
+                          {transaction.type === 'deposit' || transaction.type === 'refund' ? '+' : ''}
                           {transaction.amount.toLocaleString('ru-RU')} ₽
                         </TableCell>
                         <TableCell>
@@ -338,7 +341,7 @@ export const BalancePage: React.FC = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {new Date(transaction.created_at).toLocaleDateString('ru-RU', {
+                          {new Date(transaction.CreatedAt).toLocaleDateString('ru-RU', {
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric',

@@ -36,8 +36,8 @@ export class ProfileService {
     })
     
     const data = await response.json()
-    
-    if (data.status_response?.status !== 'success') {
+
+    if (!data) {
       throw new Error(data.error?.message || 'Failed to update profile')
     }
   }

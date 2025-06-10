@@ -149,7 +149,7 @@ export const HomePage: React.FC = () => {
       // Передаем цену карточки для проверки баланса и списания средств
       OrdersService.createOrder(user.token, orderData, card.price)
           .then(createdOrder => {
-            alert(`Заказ #${createdOrder.id} успешно создан и оплачен!\nСредства заблокированы в эскроу до завершения работы.`)
+            alert(`Заказ #${createdOrder.id} успешно создан.`)
             navigate('/orders')
           })
           .catch(error => {

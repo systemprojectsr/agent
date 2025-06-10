@@ -334,7 +334,7 @@ export const DashboardPage: React.FC = () => {
                       <div className="text-right">
                         {getStatusBadge(order.status)}
                         <div className="text-xs text-gray-500 mt-1">
-                          {new Date(order.created_at).toLocaleDateString('ru-RU')}
+                          {new Date(order.CreatedAt).toLocaleDateString('ru-RU')}
                         </div>
                       </div>
                     </div>

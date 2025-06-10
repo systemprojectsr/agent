@@ -31,7 +31,7 @@ export const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<number | null>(null)
-  const [selectedStatus, setSelectedStatus] = useState<'all' | 'created' | 'pending' | 'in_progress' | 'completed' | 'cancelled'>('all')
+  const [selectedStatus, setSelectedStatus] = useState<'all' | 'created' | 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'pending_or_created'>('all')
   const [reviewDialog, setReviewDialog] = useState<{ open: boolean, order: Order | null }>({ open: false, order: null })
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' })
   const [error, setError] = useState('')
@@ -224,8 +224,14 @@ export const OrdersPage: React.FC = () => {
 
   const filteredOrders = orders.filter(order => {
     if (selectedStatus === 'all') return true
+
+    if (selectedStatus === 'pending_or_created') {
+      return ['pending', 'created'].includes(order.status)
+    }
+
     return order.status === selectedStatus
   })
+
 
   if (loading) {
     return (
@@ -271,7 +277,7 @@ export const OrdersPage: React.FC = () => {
               <Tabs value={selectedStatus} onValueChange={(value: any) => setSelectedStatus(value)}>
                 <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="all">Все</TabsTrigger>
-                  <TabsTrigger value="pending">Ожидают</TabsTrigger>
+                  <TabsTrigger value="pending_or_created">Ожидают</TabsTrigger>
                   <TabsTrigger value="in_progress">В работе</TabsTrigger>
                   <TabsTrigger value="completed">Завершены</TabsTrigger>
                   <TabsTrigger value="cancelled">Отменены</TabsTrigger>
@@ -318,7 +324,7 @@ export const OrdersPage: React.FC = () => {
                         
                         <div className="flex items-center text-sm text-gray-600">
                           <Calendar className="h-4 w-4 mr-1" />
-                          {new Date(order.created_at).toLocaleDateString('ru-RU', {
+                          {new Date(order.CreatedAt).toLocaleDateString('ru-RU', {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric',
@@ -474,10 +480,10 @@ export const OrdersPage: React.FC = () => {
                           {order.status === 'in_progress' && (
                             <Button
                               size="sm"
-                              disabled={order.status !== 'in_progress' || actionLoading === order.id}
+                              disabled={order.status === 'in_progress' || actionLoading === order.id}
                               onClick={() => handleOrderAction(order.id, 'complete', order)}
                             >
-                              {actionLoading === order.id ? 'Завершение...' : 'Ожидание подтверждения работника'}
+                              {actionLoading === order.id ? 'Завершение...' : 'Ожидание подтверждения работником'}
                             </Button>
                           )}
                           

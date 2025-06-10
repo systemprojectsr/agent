@@ -268,7 +268,7 @@ export const ServicesPage: React.FC = () => {
                       
                       <div className="flex items-center text-sm text-gray-600">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {new Date(card.created_at).toLocaleDateString('ru-RU')}
+                        {new Date(card.CreatedAt).toLocaleDateString('ru-RU')}
                       </div>
                     </div>
 

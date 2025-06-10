@@ -45,8 +45,8 @@ export const NotificationsPage: React.FC = () => {
       }
       
       const data = await NotificationsService.getNotifications(user.token, params)
-      setNotifications(data.notifications)
-      setUnreadCount(data.unread_count)
+      setNotifications(data.notifications ?? [])
+      setUnreadCount(data.unread_count ?? 0)
     } catch (error) {
       console.error('Failed to load notifications:', error)
       setError('Ошибка загрузки уведомлений')
@@ -238,7 +238,7 @@ export const NotificationsPage: React.FC = () => {
                           <div className="flex items-center gap-4 text-xs text-gray-500">
                             <div className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
-                              {formatNotificationTime(notification.created_at)}
+                              {formatNotificationTime(notification.CreatedAt)}
                             </div>
 
                             {notification.order_id && (

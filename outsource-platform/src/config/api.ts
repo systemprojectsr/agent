@@ -1,5 +1,5 @@
 // API конфигурация
-export const API_BASE_URL = 'https://auth.tomsk-center.ru'
+export const API_BASE_URL = 'http://localhost:8080'
 
 // Типы токенов для разных операций
 export interface SimpleTokenRequest {

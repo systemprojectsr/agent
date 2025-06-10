@@ -1,5 +1,6 @@
 import { apiRequest, createSimpleToken, createExtendedToken, Order } from '@/config/api'
 import { BalanceService } from './balanceService'
+import { handlePayOrder } from '@/services/ordersService';
 
 export interface CreateOrderRequest {
   company_id: number
@@ -38,11 +39,11 @@ export class OrdersService {
       
       const data = await response.json()
       
-      if (data.status_response?.status === 'success') {
+      if (data.order) {
         // 3. После успешного создания заказа, снимаем деньги с баланса клиента (создаем эскроу)
         try {
-          await BalanceService.withdrawBalance(token, cardPrice)
-          console.log(`Средства ${cardPrice}₽ заблокированы в эскроу для заказа #${data.order.id}`)
+          // await BalanceService.withdrawBalance(token, cardPrice)
+          // console.log(`Средства ${cardPrice}₽ заблокированы в эскроу для заказа #${data.order.id}`)
         } catch (withdrawError) {
           console.error('Ошибка снятия средств:', withdrawError)
           // В реальном приложении здесь нужно отменить заказ или обработать ошибку
@@ -94,7 +95,7 @@ export class OrdersService {
     })
 
     const data = await response.json()
-    if (data.status_response?.status !== 'success') {
+    if (data.message !== 'Order paid successfully') {
       throw new Error(data.error?.message || 'Failed to pay order')
     }
   }

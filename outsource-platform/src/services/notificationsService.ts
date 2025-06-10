@@ -28,7 +28,7 @@ export class NotificationsService {
     
     const data = await response.json()
     
-    if (data.status_response?.status === 'success') {
+    if (response.status === 200) {
       return {
         notifications: data.notifications,
         total: data.total,
